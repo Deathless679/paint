@@ -1,4 +1,4 @@
-function getImagesSource(e) {
+function getImagesSource(e: ClipboardEvent) {
   if (e.clipboardData) {
     const items = e.clipboardData.items;
     if (items) {
@@ -13,11 +13,8 @@ function getImagesSource(e) {
   }
 }
 
-export function handlePasteImage(e, context, offset: { x: number, y: number }) {
+export function handlePasteImage(e: ClipboardEvent, context: CanvasRenderingContext2D, offset: { x: number, y: number }) {
   const pastedImage = new Image();
-  pastedImage.onload = function() {
-    context.drawImage(pastedImage, offset.x, offset.y)
-  }
+  pastedImage.onload = () => context.drawImage(pastedImage, offset.x, offset.y)
   pastedImage.src = getImagesSource(e);
-
 }

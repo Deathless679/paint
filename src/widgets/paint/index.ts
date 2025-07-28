@@ -7,7 +7,7 @@ import {
 } from '@/widgets/paint/drawing'
 import { handlePasteImage } from '@/widgets/paint/paste/images.ts'
 import { useEventListener, useMagicKeys, useMouse } from '@vueuse/core'
-import { useCanvasState } from '@/widgets/paint/state.ts'
+import { PCanvasStateResponse, useCanvasState } from '@/widgets/paint/state.ts'
 import { handleCanvasSize } from '@/widgets/paint/shared.ts'
 
 interface POptions {
@@ -21,7 +21,7 @@ type POptionsSize = number | {
 
 interface PReturn {
   onDrawing: (options: DrawingOptions) => HDrawingReturn
-  onPasteImage: () => void
+  state: PCanvasStateResponse
 }
 
 interface UPaintReturn {
@@ -44,7 +44,7 @@ function initPaint(root: Ref<HTMLElement>, options: POptions = defaultOptions): 
   const { Ctrl_Z } = useMagicKeys();
   const { x, y } = useMouse();
 
-  const state = useCanvasState(canvas, context);
+  const state: PReturn["state"] = useCanvasState(canvas, context);
 
   watch(Ctrl_Z, (v) => v && state.undoState())
 
@@ -54,7 +54,7 @@ function initPaint(root: Ref<HTMLElement>, options: POptions = defaultOptions): 
 
   const onDrawing: PReturn["onDrawing"] = (options) => handleDrawing(canvas, context, state.saveState).drawing(options);
 
-  useEventListener('paste', (e: ClipboardEvent) => {
+  useEventListener('paste', (e) => {
     state.saveState();
     handlePasteImage(e, context, { x: x.value, y: y.value })
   })
