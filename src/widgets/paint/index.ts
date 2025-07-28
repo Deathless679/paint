@@ -1,33 +1,12 @@
 import type { Ref } from 'vue'
 import { onMounted, ref, watch } from 'vue'
-import {
-  type DrawingOptions,
-  type HDrawingReturn,
-  handleDrawing,
-} from '@/widgets/paint/drawing'
+import { handleDrawing } from '@/widgets/paint/drawing'
 import { handlePasteImage } from '@/widgets/paint/paste/images.ts'
 import { useEventListener, useMagicKeys, useMouse } from '@vueuse/core'
-import { PCanvasStateResponse, useCanvasState } from '@/widgets/paint/state.ts'
+import { useCanvasState } from '@/widgets/paint/state'
 import { handleCanvasSize } from '@/widgets/paint/shared.ts'
+import type { POptions, PReturn, UPaintReturn } from '@/widgets/paint/types.ts'
 
-interface POptions {
-  size: POptionsSize
-}
-
-type POptionsSize = number | {
-  height: number,
-  width: number
-}
-
-interface PReturn {
-  onDrawing: (options: DrawingOptions) => HDrawingReturn
-  state: PCanvasStateResponse
-}
-
-interface UPaintReturn {
-  instance: Ref<PReturn | null>;
-  onReady: () => Promise<PReturn>
-}
 
 const defaultOptions: POptions = {
   size: {
@@ -41,10 +20,11 @@ function initPaint(root: Ref<HTMLElement>, options: POptions = defaultOptions): 
   const context = canvas.getContext('2d')
   root.value.appendChild(canvas)
 
-  const { Ctrl_Z } = useMagicKeys();
-  const { x, y } = useMouse();
+  const { Ctrl_Z } = useMagicKeys()
+  const { x, y } = useMouse()
 
-  const state: PReturn["state"] = useCanvasState(canvas, context);
+  const state: PReturn['state'] = useCanvasState(canvas, context);
+
 
   watch(Ctrl_Z, (v) => v && state.undoState())
 
@@ -52,10 +32,11 @@ function initPaint(root: Ref<HTMLElement>, options: POptions = defaultOptions): 
   canvas.width = canvasSize.width
   canvas.height = canvasSize.height
 
-  const onDrawing: PReturn["onDrawing"] = (options) => handleDrawing(canvas, context, state.saveState).drawing(options);
+  const onDrawing: PReturn['onDrawing'] = (options) => handleDrawing(canvas, context, state.saveState).drawing(options)
 
   useEventListener('paste', (e) => {
-    state.saveState();
+    state.saveState()
+    if (!context) return;
     handlePasteImage(e, context, { x: x.value, y: y.value })
   })
 
